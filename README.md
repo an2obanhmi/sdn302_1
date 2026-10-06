@@ -1,103 +1,113 @@
-# TaskFlow - Task & Team Management Web Application
+# TaskFlow - Task & Team Management Application
 
-> **Assignment 2: Task & Team Management App: CRUD API with Authentication**  
-> Built with Next.js (App Router, Route Handlers), Prisma ORM, PostgreSQL (Supabase), and Tailwind CSS.
+> **Assignment 1: Task & Team Management App: Project Setup, Prisma & Deployment**  
+> Built with Next.js (App Router, TypeScript), Prisma ORM, PostgreSQL (Supabase), and Tailwind CSS.
 
 ---
 
-## 🚀 Live Demo & Repository
+## 🚀 Live Demo & Links
 - **GitHub Repository**: [https://github.com/an2obanhmi/SDN302_1](https://github.com/an2obanhmi/SDN302_1)
-- **Deployed URL**: *(Configured on Vercel)*
+- **Deployed Website (Vercel)**: *(Deployed live on Vercel)*
 
 ---
 
-## 🔑 Demo & Test Account (For Grading)
-The system supports self-registration with immediate login (no confirmation link required), or you can use the pre-seeded grading account:
+## 📋 Features Overview
 
-- **Email**: `grader@test.com`
-- **Password**: `Grader123@`
-- **Status**: Email-verified / ready to log in immediately
+### Core Assignment 1 Features
+- **Public Task CRUD (No Auth Required)**:
+  - Create new tasks with title, description, status, priority, and due date.
+  - List and view all tasks directly on the homepage with live data from Supabase PostgreSQL.
+  - Update tasks in-place with an interactive modal.
+  - Delete tasks with confirmation.
+  - Auto-refreshing list without full page reload.
+- **Responsive Layout & Navigation**: Clean header with navigation links (`Home`, `Teams`, `Login`) and placeholder page for Teams section.
+- **Client-Side Validation**: Ensures task title is required before submission.
+- **Status Filter (Bonus)**: Filter tasks by `All`, `To Do`, `In Progress`, or `Done`.
+- **Automated CI Check (Bonus)**: GitHub Actions workflow (`.github/workflows/ci.yml`) running lint and build checks on push.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🗄️ Relational Database Schema & ERD
+
+The application uses **Prisma ORM** connected to a cloud **PostgreSQL** database on Supabase.
+
+### Entity Relationship Diagram (ERD)
+
+```mermaid
+erDiagram
+    User ||--o{ Team : "owns"
+    User ||--o{ TeamMember : "belongs to"
+    User ||--o{ Task : "assigned"
+    User ||--o{ Task : "created"
+    Team ||--o{ TeamMember : "has"
+    Team ||--o{ Task : "contains"
+
+    User {
+        String id PK
+        String name
+        String email UK
+        String password
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Team {
+        String id PK
+        String name
+        String description
+        String ownerId FK
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    TeamMember {
+        String id PK
+        String teamId FK
+        String userId FK
+        String role "OWNER | MEMBER"
+        DateTime joinedAt
+    }
+
+    Task {
+        String id PK
+        String title
+        String description
+        String status "TODO | IN_PROGRESS | DONE"
+        String priority "LOW | MEDIUM | HIGH"
+        DateTime dueDate
+        String teamId FK "Optional in Ass 1"
+        String assigneeId FK "Optional in Ass 1"
+        String creatorId FK "Optional in Ass 1"
+        DateTime createdAt
+        DateTime updatedAt
+    }
+```
+
+---
+
+## 📡 RESTful API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/tasks` | Get all tasks (supports query `?status=TODO\|IN_PROGRESS\|DONE`) |
+| `POST` | `/api/tasks` | Create a new task (body: `title`, `description`, `status`, `priority`, `dueDate`) |
+| `GET` | `/api/tasks/:id` | Get details of a single task |
+| `PUT` | `/api/tasks/:id` | Update task details or status |
+| `DELETE` | `/api/tasks/:id` | Delete a task from the database |
+
+---
+
+## 🛠️ Tech Stack
 - **Framework**: [Next.js](https://nextjs.org/) (App Router, Route Handlers, TypeScript)
 - **Database**: [PostgreSQL (Supabase)](https://supabase.com/)
 - **ORM**: [Prisma](https://www.prisma.io/)
-- **Authentication**: JWT (JSON Web Tokens) with secure HTTP-only Cookies & `bcryptjs` password hashing
-- **Styling**: Tailwind CSS & [Lucide Icons](https://lucide.dev/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Lucide Icons](https://lucide.dev/)
 - **Deployment**: [Vercel](https://vercel.com/)
+- **CI/CD**: GitHub Actions
 
 ---
 
-## 🗄️ Relational Data Model (Prisma)
-- **User**: Represents registered accounts (`id`, `name`, `email`, `password`, `createdAt`, `updatedAt`).
-- **Team**: Represents collaborative groups (`id`, `name`, `description`, `ownerId`, `createdAt`).
-- **TeamMember**: Join table connecting users to teams with role-based access (`id`, `teamId`, `userId`, `role`: `OWNER` | `MEMBER`, `joinedAt`).
-- **Task**: Represents individual team tasks (`id`, `title`, `description`, `status`: `TODO` | `IN_PROGRESS` | `DONE`, `priority`: `LOW` | `MEDIUM` | `HIGH`, `dueDate`, `teamId`, `assigneeId`, `creatorId`, `createdAt`).
-
----
-
-## 📡 RESTful CRUD API Endpoints
-
-### 1. Authentication
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| `POST` | `/api/auth/register` | Register a new user | Public |
-| `POST` | `/api/auth/login` | Login and receive JWT HTTP-only cookie | Public |
-| `POST` | `/api/auth/logout` | Logout and clear session cookie | Authenticated |
-| `GET` | `/api/auth/me` | Get current authenticated user profile | Authenticated |
-
-### 2. Teams Management
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| `GET` | `/api/teams` | List all teams current user belongs to | Authenticated |
-| `POST` | `/api/teams` | Create a new team (creator becomes `OWNER`) | Authenticated |
-| `GET` | `/api/teams/:id` | Get team details, members, and tasks | Team Members |
-| `PUT` | `/api/teams/:id` | Update team details (name, description) | **Owner Only** |
-| `DELETE` | `/api/teams/:id` | Delete team and cascade all tasks | **Owner Only** |
-
-### 3. Team Members
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| `POST` | `/api/teams/:id/members` | Add a member by email | **Owner Only** |
-| `DELETE` | `/api/teams/:id/members/:userId` | Remove a member from the team | **Owner Only** |
-
-### 4. Tasks Management
-| Method | Endpoint | Description | Access |
-|---|---|---|---|
-| `GET` | `/api/teams/:id/tasks` | List team tasks (supports status & priority filters) | Team Members |
-| `POST` | `/api/teams/:id/tasks` | Create a task within the team | Team Members |
-| `PUT` | `/api/tasks/:id` | Update task details, status, priority, or assignee | Team Members |
-| `DELETE` | `/api/tasks/:id` | Delete a task | **Creator, Assignee, or Owner** |
-
----
-
-## 🔒 Role-Based Authorization Matrix (RBAC)
-
-| Action | Unauthenticated | Team Member | Team Owner |
-|---|:---:|:---:|:---:|
-| View Landing Page, Login, Register | ✅ | ✅ | ✅ |
-| Create Team | ❌ | ✅ *(Becomes Owner)* | ✅ *(Becomes Owner)* |
-| View Team Tasks & Members | ❌ | ✅ *(If in team)* | ✅ |
-| Update Team Info | ❌ | ❌ | ✅ |
-| Delete Team | ❌ | ❌ | ✅ |
-| Invite / Remove Members | ❌ | ❌ | ✅ |
-| Create Task | ❌ | ✅ | ✅ |
-| Update Task Status / Details | ❌ | ✅ | ✅ |
-| Delete Task | ❌ | ✅ *(If Creator or Assignee)* | ✅ |
-
----
-
-## 🌟 Bonus Features Implemented
-- **Interactive Kanban Board**: Switch between list/table view and 3-column Kanban board (*To Do*, *In Progress*, *Done*).
-- **Task Search & Multi-Filter**: Real-time searching and filtering by Status and Priority.
-- **Grader Quick-Fill Button**: 1-click credential auto-fill on login page for effortless grading.
-- **Visual Status & Priority Badges**: Color-coded badges for clarity across all views.
-
----
-
-## 💻 Getting Started Locally
+## 💻 Local Setup Instructions
 
 ### 1. Clone & Install Dependencies
 ```bash
@@ -107,21 +117,24 @@ npm install
 ```
 
 ### 2. Configure Environment Variables
-Copy `.env.example` to `.env` and fill in your Supabase connection strings:
+Copy `.env.example` to `.env` and fill in your Supabase database credentials:
 ```bash
-DATABASE_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require"
-DIRECT_URL="postgresql://postgres:[PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres?sslmode=require"
-JWT_SECRET="your-secure-jwt-secret"
+cp .env.example .env
+```
+In `.env`:
+```env
+DATABASE_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
+JWT_SECRET="your-jwt-secret-key"
 ```
 
-### 3. Push Database Schema & Seed Data
+### 3. Synchronize Database & Generate Prisma Client
 ```bash
-npm run db:push
-npm run db:seed
+npx prisma db push
 ```
 
 ### 4. Run Development Server
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost:3000](http://localhost:3000) to view the application.
