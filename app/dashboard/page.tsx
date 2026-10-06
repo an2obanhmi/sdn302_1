@@ -50,16 +50,16 @@ export default function DashboardPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-8 border-b border-gray-200">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-8 border-b border-slate-800/80">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Teams Dashboard</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Teams Dashboard</h1>
+          <p className="mt-1 text-xs sm:text-sm text-slate-400">
             View, manage, and collaborate across all teams you belong to.
           </p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm shadow-sm hover:bg-indigo-700 transition"
+          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition"
         >
           <Plus className="w-4 h-4" />
           <span>Create New Team</span>
@@ -68,35 +68,35 @@ export default function DashboardPage() {
 
       {/* Stats Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-8">
-        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs flex items-center gap-4">
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-lg">
+        <div className="bg-[#111827]/90 p-5 rounded-xl border border-slate-800 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg">
             <FolderKanban className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Your Teams</p>
-            <p className="text-2xl font-bold text-gray-900">{teams.length}</p>
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Your Teams</p>
+            <p className="text-2xl font-bold text-white">{teams.length}</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs flex items-center gap-4">
-          <div className="p-3 bg-violet-50 text-violet-600 rounded-lg">
+        <div className="bg-[#111827]/90 p-5 rounded-xl border border-slate-800 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-lg">
             <Shield className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Owned Teams</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Owned Teams</p>
+            <p className="text-2xl font-bold text-white">
               {teams.filter((t) => t.userRole === "OWNER").length}
             </p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-xs flex items-center gap-4">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-lg">
+        <div className="bg-[#111827]/90 p-5 rounded-xl border border-slate-800 shadow-sm flex items-center gap-4">
+          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg">
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Total Tasks</p>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Tasks</p>
+            <p className="text-2xl font-bold text-white">
               {teams.reduce((acc, t) => acc + (t._count?.tasks || 0), 0)}
             </p>
           </div>
@@ -105,22 +105,22 @@ export default function DashboardPage() {
 
       {/* Teams Grid */}
       {loading ? (
-        <div className="py-20 flex flex-col items-center justify-center text-gray-500">
-          <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-2" />
-          <p className="text-sm">Loading your teams...</p>
+        <div className="py-20 flex flex-col items-center justify-center text-slate-400">
+          <Loader2 className="w-8 h-8 animate-spin text-indigo-400 mb-2" />
+          <p className="text-xs text-slate-400">Loading your teams...</p>
         </div>
       ) : teams.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-200 border-dashed p-12 text-center">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center mx-auto mb-4">
+        <div className="bg-[#111827]/60 rounded-2xl border border-dashed border-slate-800 p-12 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900">No teams found</h3>
-          <p className="mt-1 text-sm text-gray-500 max-w-sm mx-auto">
+          <h3 className="text-base font-bold text-white">No teams found</h3>
+          <p className="mt-1 text-xs text-slate-400 max-w-sm mx-auto">
             You are not part of any team yet. Create your first team to get started!
           </p>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 text-white font-medium text-sm hover:bg-indigo-700 transition"
+            className="mt-6 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs shadow-md transition"
           >
             <Plus className="w-4 h-4" />
             <span>Create Team</span>
@@ -131,44 +131,44 @@ export default function DashboardPage() {
           {teams.map((team) => (
             <div
               key={team.id}
-              className="bg-white rounded-2xl border border-gray-200 hover:border-indigo-200 hover:shadow-md transition flex flex-col justify-between p-6"
+              className="bg-[#111827]/90 rounded-2xl border border-slate-800 hover:border-slate-700/80 hover:shadow-xl hover:shadow-black/20 transition flex flex-col justify-between p-6 group"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-3">
-                  <h3 className="text-lg font-bold text-gray-900 tracking-tight line-clamp-1">
+                  <h3 className="text-base font-bold text-white tracking-tight line-clamp-1">
                     {team.name}
                   </h3>
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold shrink-0 ${
+                    className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium shrink-0 ${
                       team.userRole === "OWNER"
-                        ? "bg-amber-100 text-amber-800 border border-amber-200"
-                        : "bg-blue-100 text-blue-800 border border-blue-200"
+                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                        : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
                     }`}
                   >
                     {team.userRole === "OWNER" ? "Owner" : "Member"}
                   </span>
                 </div>
 
-                <p className="text-sm text-gray-600 line-clamp-2 min-h-[2.5rem]">
+                <p className="text-xs text-slate-400 line-clamp-2 min-h-[2.5rem] leading-relaxed">
                   {team.description || "No description provided."}
                 </p>
               </div>
 
-              <div className="mt-6 pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+              <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
                 <div className="flex items-center gap-4">
-                  <span className="flex items-center gap-1 font-medium text-gray-700">
-                    <Users className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="flex items-center gap-1 font-medium text-slate-300">
+                    <Users className="w-3.5 h-3.5 text-slate-500" />
                     {team._count?.members || 1} members
                   </span>
-                  <span className="flex items-center gap-1 font-medium text-gray-700">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-gray-400" />
+                  <span className="flex items-center gap-1 font-medium text-slate-300">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-slate-500" />
                     {team._count?.tasks || 0} tasks
                   </span>
                 </div>
 
                 <Link
                   href={`/teams/${team.id}`}
-                  className="inline-flex items-center gap-1 font-semibold text-indigo-600 hover:text-indigo-800 transition"
+                  className="inline-flex items-center gap-1 font-semibold text-indigo-400 hover:text-indigo-300 transition"
                 >
                   <span>Open</span>
                   <ArrowRight className="w-3.5 h-3.5" />

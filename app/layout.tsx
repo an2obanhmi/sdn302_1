@@ -3,11 +3,15 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
-  title: "TaskFlow - Team & Task Management System",
-  description: "Assignment 2 - Task & Team Management Application with Authentication, RBAC, and CRUD APIs",
+  title: "TaskFlow - Task & Team Management",
+  description: "Assignment 1 - Task & Team Management Application with Next.js, Prisma, and Supabase",
 };
 
 export default function RootLayout({
@@ -16,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full bg-gray-50">
-      <body className={`${inter.className} min-h-screen flex flex-col bg-gray-50 text-gray-900 antialiased`}>
+    <html lang="en" className={`dark ${inter.variable} h-full`}>
+      <body className="min-h-screen flex flex-col bg-[#0B0F19] text-slate-100 antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
         <Navbar />
         <main className="flex-1 flex flex-col">{children}</main>
       </body>

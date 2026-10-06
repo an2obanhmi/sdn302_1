@@ -10,7 +10,6 @@ import {
   Trash2,
   Calendar,
   CheckCircle2,
-  Clock,
   AlertCircle,
   Search,
   Filter,
@@ -121,16 +120,12 @@ export default function TeamDetailPage() {
   const filteredTasks = useMemo(() => {
     if (!team) return [];
     return team.tasks.filter((task) => {
-      // Search
       const matchesSearch =
         !searchQuery ||
         task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (task.description && task.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      // Status
       const matchesStatus = statusFilter === "ALL" || task.status === statusFilter;
-
-      // Priority
       const matchesPriority = priorityFilter === "ALL" || task.priority === priorityFilter;
 
       return matchesSearch && matchesStatus && matchesPriority;
@@ -232,30 +227,30 @@ export default function TeamDetailPage() {
   const getStatusBadge = (status: "TODO" | "IN_PROGRESS" | "DONE") => {
     switch (status) {
       case "TODO":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">To Do</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60">To Do</span>;
       case "IN_PROGRESS":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">In Progress</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-500/10 text-sky-400 border border-sky-500/25">In Progress</span>;
       case "DONE":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700">Done</span>;
+        return <span className="px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">Done</span>;
     }
   };
 
   const getPriorityBadge = (priority: "LOW" | "MEDIUM" | "HIGH") => {
     switch (priority) {
       case "HIGH":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">High</span>;
+        return <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/25">High</span>;
       case "MEDIUM":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Medium</span>;
+        return <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/25">Medium</span>;
       case "LOW":
-        return <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">Low</span>;
+        return <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">Low</span>;
     }
   };
 
   if (loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-12">
-        <Loader2 className="w-8 h-8 animate-spin text-indigo-600 mb-2" />
-        <p className="text-sm text-gray-500">Loading team details...</p>
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-400 mb-2" />
+        <p className="text-xs text-slate-400">Loading team details...</p>
       </div>
     );
   }
@@ -263,14 +258,14 @@ export default function TeamDetailPage() {
   if (error || !team) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-16 text-center">
-        <div className="p-4 bg-red-50 text-red-700 rounded-2xl border border-red-200 inline-block mb-4">
+        <div className="p-4 bg-rose-500/10 text-rose-300 rounded-2xl border border-rose-500/20 inline-block mb-4">
           <AlertCircle className="w-8 h-8 mx-auto" />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Team Not Accessible</h2>
-        <p className="text-gray-600 mb-6">{error || "You do not have permission to view this team."}</p>
+        <h2 className="text-xl font-bold text-white mb-2">Team Not Accessible</h2>
+        <p className="text-xs text-slate-400 mb-6">{error || "You do not have permission to view this team."}</p>
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Dashboard</span>
@@ -285,7 +280,7 @@ export default function TeamDetailPage() {
       <div className="mb-6 flex items-center justify-between">
         <Link
           href="/dashboard"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-500 hover:text-gray-900 transition"
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-medium text-slate-400 hover:text-white transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>All Teams</span>
@@ -295,14 +290,14 @@ export default function TeamDetailPage() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsEditTeamModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 bg-[#111827] text-xs font-medium text-slate-200 hover:bg-slate-800 transition"
             >
               <Settings className="w-3.5 h-3.5" />
               <span>Edit Team</span>
             </button>
             <button
               onClick={handleDeleteTeam}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 bg-red-50 text-xs font-semibold text-red-700 hover:bg-red-100 transition"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-500/20 bg-rose-500/10 text-xs font-medium text-rose-300 hover:bg-rose-500/20 transition"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>Delete Team</span>
@@ -312,39 +307,39 @@ export default function TeamDetailPage() {
       </div>
 
       {/* Team Header Info Card */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 sm:p-8 shadow-xs mb-8">
+      <div className="bg-[#111827]/90 rounded-2xl border border-slate-800 p-6 sm:p-8 shadow-sm mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 {team.name}
               </h1>
               <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium ${
                   isOwner
-                    ? "bg-amber-100 text-amber-800 border border-amber-200"
-                    : "bg-blue-100 text-blue-800 border border-blue-200"
+                    ? "bg-amber-500/10 text-amber-300 border border-amber-500/20"
+                    : "bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
                 }`}
               >
                 {team.currentUserRole === "OWNER" ? "Owner" : "Member"}
               </span>
             </div>
             {team.description && (
-              <p className="mt-2 text-sm text-gray-600 max-w-3xl leading-relaxed">
+              <p className="mt-2 text-xs sm:text-sm text-slate-400 max-w-3xl leading-relaxed">
                 {team.description}
               </p>
             )}
-            <div className="mt-4 flex flex-wrap items-center gap-6 text-xs text-gray-500">
+            <div className="mt-4 flex flex-wrap items-center gap-6 text-xs text-slate-400">
               <span className="flex items-center gap-1.5">
-                <Shield className="w-4 h-4 text-gray-400" />
-                <span>Owner: <strong>{team.owner.name}</strong> ({team.owner.email})</span>
+                <Shield className="w-4 h-4 text-slate-500" />
+                <span>Owner: <strong className="text-slate-200">{team.owner.name}</strong> ({team.owner.email})</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <Users className="w-4 h-4 text-gray-400" />
+                <Users className="w-4 h-4 text-slate-500" />
                 <span>{team.members.length} members</span>
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-gray-400" />
+                <CheckCircle2 className="w-4 h-4 text-slate-500" />
                 <span>{team.tasks.length} total tasks</span>
               </span>
             </div>
@@ -353,7 +348,7 @@ export default function TeamDetailPage() {
           <div className="flex items-center gap-3 sm:self-start">
             <button
               onClick={handleOpenCreateTask}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm shadow-sm hover:bg-indigo-700 transition"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition"
             >
               <Plus className="w-4 h-4" />
               <span>Create Task</span>
@@ -361,7 +356,7 @@ export default function TeamDetailPage() {
             {isOwner && (
               <button
                 onClick={() => setIsMemberModalOpen(true)}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-300 bg-white text-gray-700 font-semibold text-sm shadow-xs hover:bg-gray-50 transition"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-slate-200 font-semibold text-xs sm:text-sm transition"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Add Member</span>
@@ -371,23 +366,23 @@ export default function TeamDetailPage() {
         </div>
 
         {/* Tabs */}
-        <div className="mt-8 border-t border-gray-200 pt-4 flex gap-4">
+        <div className="mt-8 border-t border-slate-800/80 pt-4 flex gap-4">
           <button
             onClick={() => setActiveTab("tasks")}
-            className={`pb-2 px-1 text-sm font-semibold border-b-2 transition ${
+            className={`pb-2 px-1 text-xs sm:text-sm font-semibold border-b-2 transition ${
               activeTab === "tasks"
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500 hover:text-gray-800"
+                ? "border-indigo-500 text-indigo-400"
+                : "border-transparent text-slate-400 hover:text-slate-200"
             }`}
           >
             Tasks ({team.tasks.length})
           </button>
           <button
             onClick={() => setActiveTab("members")}
-            className={`pb-2 px-1 text-sm font-semibold border-b-2 transition ${
+            className={`pb-2 px-1 text-xs sm:text-sm font-semibold border-b-2 transition ${
               activeTab === "members"
-                ? "border-indigo-600 text-indigo-600"
-                : "border-transparent text-gray-500 hover:text-gray-800"
+                ? "border-indigo-500 text-indigo-400"
+                : "border-transparent text-slate-400 hover:text-slate-200"
             }`}
           >
             Members ({team.members.length})
@@ -399,27 +394,27 @@ export default function TeamDetailPage() {
       {activeTab === "tasks" && (
         <div className="space-y-6">
           {/* Controls: Search, Filters, View Switcher */}
-          <div className="bg-white p-4 rounded-xl border border-gray-200 flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
+          <div className="bg-[#111827]/90 p-4 rounded-xl border border-slate-800 flex flex-col md:flex-row gap-4 justify-between items-stretch md:items-center">
             {/* Search */}
             <div className="relative flex-1">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
               <input
                 type="text"
                 placeholder="Search tasks by title or description..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full pl-9 pr-3 py-2 text-sm bg-[#0B0F19]/90 border border-slate-800 rounded-lg text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition"
               />
             </div>
 
             {/* Filter Dropdowns */}
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium text-gray-500">Status:</span>
+                <span className="text-xs font-medium text-slate-400">Status:</span>
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="text-xs border border-slate-800 rounded-lg px-2.5 py-1.5 bg-[#0B0F19] text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500/40"
                 >
                   <option value="ALL">All Statuses</option>
                   <option value="TODO">To Do</option>
@@ -429,11 +424,11 @@ export default function TeamDetailPage() {
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-xs font-medium text-gray-500">Priority:</span>
+                <span className="text-xs font-medium text-slate-400">Priority:</span>
                 <select
                   value={priorityFilter}
                   onChange={(e) => setPriorityFilter(e.target.value)}
-                  className="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="text-xs border border-slate-800 rounded-lg px-2.5 py-1.5 bg-[#0B0F19] text-slate-200 focus:outline-none focus:ring-1 focus:ring-indigo-500/40"
                 >
                   <option value="ALL">All Priorities</option>
                   <option value="HIGH">High</option>
@@ -443,13 +438,13 @@ export default function TeamDetailPage() {
               </div>
 
               {/* View Toggle (Table vs Kanban) */}
-              <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200">
+              <div className="flex items-center bg-slate-900 p-1 rounded-lg border border-slate-800">
                 <button
                   onClick={() => setViewMode("table")}
                   className={`p-1.5 rounded-md text-xs font-medium transition ${
                     viewMode === "table"
-                      ? "bg-white text-gray-900 shadow-xs"
-                      : "text-gray-500 hover:text-gray-900"
+                      ? "bg-slate-800 text-white shadow-xs"
+                      : "text-slate-400 hover:text-white"
                   }`}
                   title="Table View"
                 >
@@ -459,8 +454,8 @@ export default function TeamDetailPage() {
                   onClick={() => setViewMode("kanban")}
                   className={`p-1.5 rounded-md text-xs font-medium transition ${
                     viewMode === "kanban"
-                      ? "bg-white text-indigo-600 shadow-xs"
-                      : "text-gray-500 hover:text-gray-900"
+                      ? "bg-slate-800 text-indigo-400 shadow-xs"
+                      : "text-slate-400 hover:text-white"
                   }`}
                   title="Kanban Board View (Bonus)"
                 >
@@ -472,24 +467,23 @@ export default function TeamDetailPage() {
 
           {/* View rendering */}
           {filteredTasks.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-gray-200 border-dashed p-12 text-center">
-              <CheckCircle2 className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-              <h4 className="text-base font-semibold text-gray-900">No tasks found</h4>
-              <p className="text-sm text-gray-500 mt-1">
+            <div className="bg-[#111827]/60 rounded-xl border border-dashed border-slate-800 p-12 text-center">
+              <CheckCircle2 className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+              <h4 className="text-sm font-semibold text-slate-200">No tasks found</h4>
+              <p className="text-xs text-slate-400 mt-1">
                 {searchQuery || statusFilter !== "ALL" || priorityFilter !== "ALL"
                   ? "Try clearing your filters or search terms."
                   : "Get started by creating your first task for this team."}
               </p>
               <button
                 onClick={handleOpenCreateTask}
-                className="mt-4 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition"
+                className="mt-4 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Create Task</span>
               </button>
             </div>
           ) : viewMode === "kanban" ? (
-            /* Kanban Board Component */
             <KanbanBoard
               tasks={filteredTasks}
               currentUserId={currentUserId}
@@ -499,12 +493,11 @@ export default function TeamDetailPage() {
               onUpdateStatus={handleQuickUpdateStatus}
             />
           ) : (
-            /* Table View */
-            <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
+            <div className="bg-[#111827]/90 rounded-2xl border border-slate-800 overflow-hidden shadow-sm">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-sm">
                   <thead>
-                    <tr className="border-b border-gray-200 bg-gray-50/75 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <tr className="border-b border-slate-800 bg-slate-900/60 text-xs font-semibold text-slate-400 uppercase tracking-wider">
                       <th className="py-3.5 px-4 sm:px-6">Task</th>
                       <th className="py-3.5 px-4">Status</th>
                       <th className="py-3.5 px-4">Priority</th>
@@ -513,7 +506,7 @@ export default function TeamDetailPage() {
                       <th className="py-3.5 px-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-slate-800/60">
                     {filteredTasks.map((task) => {
                       const canDelete =
                         task.creatorId === currentUserId ||
@@ -521,11 +514,11 @@ export default function TeamDetailPage() {
                         team.ownerId === currentUserId;
 
                       return (
-                        <tr key={task.id} className="hover:bg-gray-50/80 transition">
+                        <tr key={task.id} className="hover:bg-slate-800/40 transition">
                           <td className="py-4 px-4 sm:px-6">
-                            <div className="font-semibold text-gray-900">{task.title}</div>
+                            <div className="font-semibold text-slate-100 text-sm">{task.title}</div>
                             {task.description && (
-                              <p className="text-xs text-gray-500 line-clamp-1 mt-0.5 max-w-md">
+                              <p className="text-xs text-slate-400 line-clamp-1 mt-0.5 max-w-md">
                                 {task.description}
                               </p>
                             )}
@@ -539,7 +532,7 @@ export default function TeamDetailPage() {
                                   e.target.value as "TODO" | "IN_PROGRESS" | "DONE"
                                 )
                               }
-                              className="text-xs font-medium rounded-full px-2.5 py-1 border border-gray-200 bg-white text-gray-700 cursor-pointer hover:border-gray-300"
+                              className="text-xs font-medium rounded-full px-2.5 py-1 border border-slate-800 bg-[#0B0F19] text-slate-200 cursor-pointer hover:border-slate-700"
                             >
                               <option value="TODO">To Do</option>
                               <option value="IN_PROGRESS">In Progress</option>
@@ -550,15 +543,15 @@ export default function TeamDetailPage() {
                             {getPriorityBadge(task.priority)}
                           </td>
                           <td className="py-4 px-4 whitespace-nowrap">
-                            <div className="flex items-center gap-1.5 text-xs text-gray-700">
-                              <User className="w-3.5 h-3.5 text-gray-400" />
+                            <div className="flex items-center gap-1.5 text-xs text-slate-300">
+                              <User className="w-3.5 h-3.5 text-slate-500" />
                               <span>{task.assignee ? task.assignee.name : "Unassigned"}</span>
                             </div>
                           </td>
-                          <td className="py-4 px-4 whitespace-nowrap text-xs text-gray-500">
+                          <td className="py-4 px-4 whitespace-nowrap text-xs text-slate-400">
                             {task.dueDate ? (
                               <div className="flex items-center gap-1">
-                                <Calendar className="w-3.5 h-3.5 text-gray-400" />
+                                <Calendar className="w-3.5 h-3.5 text-slate-500" />
                                 <span>{new Date(task.dueDate).toLocaleDateString()}</span>
                               </div>
                             ) : (
@@ -569,7 +562,7 @@ export default function TeamDetailPage() {
                             <div className="flex items-center justify-end gap-2">
                               <button
                                 onClick={() => handleOpenEditTask(task)}
-                                className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition"
                                 title="Edit Task"
                               >
                                 <Edit className="w-4 h-4" />
@@ -577,7 +570,7 @@ export default function TeamDetailPage() {
                               {canDelete && (
                                 <button
                                   onClick={() => handleDeleteTask(task.id)}
-                                  className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition"
                                   title="Delete Task"
                                 >
                                   <Trash2 className="w-4 h-4" />
@@ -600,11 +593,11 @@ export default function TeamDetailPage() {
       {activeTab === "members" && (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-gray-900">Team Members</h3>
+            <h3 className="text-base font-bold text-white">Team Members</h3>
             {isOwner && (
               <button
                 onClick={() => setIsMemberModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 text-white font-semibold text-xs shadow-xs hover:bg-indigo-700 transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-xs transition"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>Add Member</span>
@@ -612,8 +605,8 @@ export default function TeamDetailPage() {
             )}
           </div>
 
-          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-xs">
-            <ul className="divide-y divide-gray-100">
+          <div className="bg-[#111827]/90 rounded-2xl border border-slate-800 overflow-hidden shadow-sm">
+            <ul className="divide-y divide-slate-800/60">
               {team.members.map((member) => {
                 const isMemberOwner = member.role === "OWNER";
                 const canRemove = isOwner && !isMemberOwner;
@@ -621,37 +614,37 @@ export default function TeamDetailPage() {
                 return (
                   <li
                     key={member.id}
-                    className="p-4 sm:px-6 flex items-center justify-between hover:bg-gray-50 transition"
+                    className="p-4 sm:px-6 flex items-center justify-between hover:bg-slate-800/40 transition"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">
+                      <div className="h-10 w-10 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">
                         {member.user.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-semibold text-gray-900">{member.user.name}</span>
+                          <span className="font-semibold text-slate-100 text-sm">{member.user.name}</span>
                           <span
-                            className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
+                            className={`px-2 py-0.5 rounded text-[11px] font-medium ${
                               isMemberOwner
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-gray-100 text-gray-700"
+                                ? "bg-amber-500/10 text-amber-300 border border-amber-500/20"
+                                : "bg-slate-800 text-slate-300 border border-slate-700/60"
                             }`}
                           >
                             {member.role === "OWNER" ? "Owner" : "Member"}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-500">{member.user.email}</span>
+                        <span className="text-xs text-slate-400">{member.user.email}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-4">
-                      <span className="text-xs text-gray-400 hidden sm:inline">
+                      <span className="text-xs text-slate-500 hidden sm:inline">
                         Joined {new Date(member.joinedAt).toLocaleDateString()}
                       </span>
                       {canRemove && (
                         <button
                           onClick={() => handleRemoveMember(member.userId, member.user.name)}
-                          className="px-2.5 py-1 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 border border-red-200 transition"
+                          className="px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-400 hover:bg-rose-500/10 border border-rose-500/20 transition"
                         >
                           Remove
                         </button>

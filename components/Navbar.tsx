@@ -31,17 +31,20 @@ export default function Navbar() {
   }, [pathname]);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/95 backdrop-blur-xs">
+    <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-[#0B0F19]/85 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <div className="flex items-center space-x-8">
-            <Link href="/" className="flex items-center space-x-2.5 font-bold text-indigo-600 hover:text-indigo-700 transition">
-              <div className="p-2 bg-indigo-50 rounded-lg">
-                <CheckSquare className="h-6 w-6 text-indigo-600" />
+            <Link
+              href="/"
+              className="flex items-center space-x-2.5 font-bold transition group"
+            >
+              <div className="p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl group-hover:border-indigo-500/40 transition">
+                <CheckSquare className="h-5 w-5 text-indigo-400" />
               </div>
-              <span className="text-xl tracking-tight text-gray-900">
-                Task<span className="text-indigo-600">Flow</span>
+              <span className="text-lg tracking-tight text-white font-semibold">
+                Task<span className="text-indigo-400">Flow</span>
               </span>
             </Link>
 
@@ -49,35 +52,35 @@ export default function Navbar() {
             <nav className="flex items-center space-x-1 sm:space-x-2">
               <Link
                 href="/"
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 ${
                   pathname === "/"
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    ? "bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 shadow-xs"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
                 }`}
               >
-                <Home className="w-4 h-4" />
+                <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Home</span>
               </Link>
 
               <Link
                 href="/teams"
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1.5 ${
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 ${
                   pathname === "/teams"
-                    ? "bg-indigo-50 text-indigo-700"
-                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    ? "bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 shadow-xs"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
                 }`}
               >
-                <Users className="w-4 h-4" />
+                <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 <span>Teams</span>
               </Link>
 
               {user && (
                 <Link
                   href="/dashboard"
-                  className={`hidden sm:flex px-3 py-2 rounded-lg text-sm font-medium transition items-center gap-1.5 ${
+                  className={`hidden sm:flex px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition items-center gap-1.5 ${
                     pathname === "/dashboard"
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                      ? "bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 shadow-xs"
+                      : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
                   }`}
                 >
                   <LayoutDashboard className="w-4 h-4" />
@@ -90,18 +93,18 @@ export default function Navbar() {
           {/* Right Action: Login / Profile */}
           <div className="flex items-center space-x-3">
             {user ? (
-              <div className="flex items-center space-x-2">
-                <div className="h-8 w-8 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
+              <div className="flex items-center space-x-2.5">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-xs ring-1 ring-slate-700">
                   {user.name.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-xs font-semibold text-gray-700 hidden sm:inline">{user.name}</span>
+                <span className="text-xs font-medium text-slate-300 hidden sm:inline">{user.name}</span>
               </div>
             ) : (
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-gray-300 bg-white text-xs font-semibold text-gray-700 shadow-xs hover:bg-gray-50 transition"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-800 bg-slate-900/80 hover:bg-slate-800 text-xs font-medium text-slate-200 hover:text-white transition shadow-xs"
               >
-                <LogIn className="w-3.5 h-3.5" />
+                <LogIn className="w-3.5 h-3.5 text-slate-400" />
                 <span>Login</span>
               </Link>
             )}
