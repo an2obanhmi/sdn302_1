@@ -1,29 +1,25 @@
 # TaskFlow - Task & Team Management Application
 
-> **Assignment 1: Task & Team Management App: Project Setup, Prisma & Deployment**  
-> Built with Next.js (App Router, TypeScript), Prisma ORM, PostgreSQL (Supabase), and Tailwind CSS.
+> **Assignment 2: Task & Team Management App: CRUD API with Authentication**  
+> Built with Next.js (App Router, Route Handlers, TypeScript), Prisma ORM, PostgreSQL (Supabase), and Tailwind CSS.
 
 ---
 
 ## 🚀 Live Demo & Links
 - **GitHub Repository**: [https://github.com/an2obanhmi/SDN302_1](https://github.com/an2obanhmi/SDN302_1)
-- **Deployed Website (Vercel)**: *(Deployed live on Vercel)*
+- **Deployed Website (Vercel)**: *(Configured on Vercel)*
 
 ---
 
-## 📋 Features Overview
+## 🔑 Demo & Test Account (For Automated Grading)
+The application supports **self-registration with immediate login** (no confirmation email link needed), and includes pre-configured grading credentials:
 
-### Core Assignment 1 Features
-- **Public Task CRUD (No Auth Required)**:
-  - Create new tasks with title, description, status, priority, and due date.
-  - List and view all tasks directly on the homepage with live data from Supabase PostgreSQL.
-  - Update tasks in-place with an interactive modal.
-  - Delete tasks with confirmation.
-  - Auto-refreshing list without full page reload.
-- **Responsive Layout & Navigation**: Clean header with navigation links (`Home`, `Teams`, `Login`) and placeholder page for Teams section.
-- **Client-Side Validation**: Ensures task title is required before submission.
-- **Status Filter (Bonus)**: Filter tasks by `All`, `To Do`, `In Progress`, or `Done`.
-- **Automated CI Check (Bonus)**: GitHub Actions workflow (`.github/workflows/ci.yml`) running lint and build checks on push.
+- **Email**: `grader@test.com`
+- **Password**: `Grader123@`
+- **Role**: Team Owner (`Core Engineering Team`)
+- **Status**: Ready to log in immediately
+
+*(A second member account `alice@test.com` / `Alice123@` is also pre-seeded as a team member).*
 
 ---
 
@@ -75,9 +71,9 @@ erDiagram
         String status "TODO | IN_PROGRESS | DONE"
         String priority "LOW | MEDIUM | HIGH"
         DateTime dueDate
-        String teamId FK "Optional in Ass 1"
-        String assigneeId FK "Optional in Ass 1"
-        String creatorId FK "Optional in Ass 1"
+        String teamId FK
+        String assigneeId FK
+        String creatorId FK
         DateTime createdAt
         DateTime updatedAt
     }
@@ -85,25 +81,65 @@ erDiagram
 
 ---
 
-## 📡 RESTful API Endpoints
+## 📡 RESTful CRUD API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/tasks` | Get all tasks (supports query `?status=TODO\|IN_PROGRESS\|DONE`) |
-| `POST` | `/api/tasks` | Create a new task (body: `title`, `description`, `status`, `priority`, `dueDate`) |
-| `GET` | `/api/tasks/:id` | Get details of a single task |
-| `PUT` | `/api/tasks/:id` | Update task details or status |
-| `DELETE` | `/api/tasks/:id` | Delete a task from the database |
+### 1. Authentication
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| `POST` | `/api/auth/register` | Register a new user | Public |
+| `POST` | `/api/auth/login` | Login and receive JWT HTTP-only cookie | Public |
+| `POST` | `/api/auth/logout` | Logout and clear session cookie | Authenticated |
+| `GET` | `/api/auth/me` | Get current authenticated user profile | Authenticated |
+
+### 2. Teams Management
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| `GET` | `/api/teams` | List all teams current user belongs to | Authenticated |
+| `POST` | `/api/teams` | Create a new team (creator becomes `OWNER`) | Authenticated |
+| `GET` | `/api/teams/:id` | Get team details, members, and tasks | Team Members |
+| `PUT` | `/api/teams/:id` | Update team details (name, description) | **Team Owner Only** |
+| `DELETE` | `/api/teams/:id` | Delete team and cascade associated tasks | **Team Owner Only** |
+
+### 3. Team Members Management
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| `POST` | `/api/teams/:id/members` | Add a member to the team by email | **Team Owner Only** |
+| `DELETE` | `/api/teams/:id/members/:userId` | Remove a member from the team | **Team Owner Only** |
+
+### 4. Tasks Management
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| `GET` | `/api/teams/:id/tasks` | List tasks for a team (supports filter & search) | Team Members |
+| `POST` | `/api/teams/:id/tasks` | Create a new task within the team | Team Members |
+| `PUT` | `/api/tasks/:id` | Update task details, status, priority, or assignee | Team Members |
+| `DELETE` | `/api/tasks/:id` | Delete a task | **Creator, Assignee, or Team Owner** |
 
 ---
 
-## 🛠️ Tech Stack
-- **Framework**: [Next.js](https://nextjs.org/) (App Router, Route Handlers, TypeScript)
-- **Database**: [PostgreSQL (Supabase)](https://supabase.com/)
-- **ORM**: [Prisma](https://www.prisma.io/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/) & [Lucide Icons](https://lucide.dev/)
-- **Deployment**: [Vercel](https://vercel.com/)
-- **CI/CD**: GitHub Actions
+## 🔒 Role-Based Authorization Matrix (RBAC)
+
+| Action | Unauthenticated | Team Member | Team Owner |
+|---|:---:|:---:|:---:|
+| View Landing Page, Login, Register | ✅ | ✅ | ✅ |
+| Access Dashboard / Teams | ❌ *(Redirects to Login)* | ✅ | ✅ |
+| Create Team | ❌ | ✅ *(Becomes Owner)* | ✅ *(Becomes Owner)* |
+| View Team Tasks & Members | ❌ | ✅ *(If in team)* | ✅ |
+| Update Team Name / Description | ❌ | ❌ | ✅ |
+| Delete Team | ❌ | ❌ | ✅ |
+| Add Members by Email | ❌ | ❌ | ✅ |
+| Remove Members | ❌ | ❌ | ✅ |
+| Create Task | ❌ | ✅ | ✅ |
+| Update Task Details & Status | ❌ | ✅ | ✅ |
+| Delete Task | ❌ | ✅ *(Only Creator or Assignee)* | ✅ |
+
+---
+
+## 🌟 Bonus Features Implemented
+- **Interactive Kanban Board**: Switch between list/table view and 3-column Kanban board (*To Do*, *In Progress*, *Done*).
+- **Task Search & Multi-Criteria Filtering**: Filter tasks by Status (*To Do, In Progress, Done*) and Priority (*Low, Medium, High*).
+- **One-Click Grader Login**: Dedicated quick-fill button on the login page for effortless test grading.
+- **Sleek Minimalist Dark Mode**: Designed with `#0B0F19` slate-navy palette, pastel status badges, and accessible typography.
+- **Automated CI/CD**: GitHub Actions workflow (`.github/workflows/ci.yml`) ensuring clean lint and production build on every push.
 
 ---
 
@@ -117,20 +153,15 @@ npm install
 ```
 
 ### 2. Configure Environment Variables
-Copy `.env.example` to `.env` and fill in your Supabase database credentials:
+Copy `.env.example` to `.env` and fill in your Supabase connection strings:
 ```bash
 cp .env.example .env
 ```
-In `.env`:
-```env
-DATABASE_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
-DIRECT_URL="postgresql://postgres.[REF]:[PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"
-JWT_SECRET="your-jwt-secret-key"
-```
 
-### 3. Synchronize Database & Generate Prisma Client
+### 3. Push Database Schema & Seed Demo Data
 ```bash
-npx prisma db push
+npm run db:push
+npm run db:seed
 ```
 
 ### 4. Run Development Server

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import Link from "next/link";
 import {
   CheckSquare,
   Plus,
@@ -11,11 +12,14 @@ import {
   Filter,
   CheckCircle2,
   Clock,
-  Circle,
+  Sparkles,
+  KeyRound,
+  ArrowRight,
   X,
   Check,
   Loader2,
-  Sparkles,
+  ShieldCheck,
+  Users,
 } from "lucide-react";
 
 interface Task {
@@ -26,12 +30,15 @@ interface Task {
   priority: "LOW" | "MEDIUM" | "HIGH";
   dueDate: string | null;
   createdAt: string;
+  team?: { id: string; name: string } | null;
+  assignee?: { id: string; name: string } | null;
 }
 
 export default function HomePage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [currentUser, setCurrentUser] = useState<{ id: string; name: string; email: string } | null>(null);
 
   // Create form state
   const [title, setTitle] = useState("");
@@ -41,6 +48,7 @@ export default function HomePage() {
   const [dueDate, setDueDate] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState("");
+  const [formSuccess, setFormSuccess] = useState("");
 
   // Edit modal state
   const [editingTask, setEditingTask] = useState<Task | null>(null);
@@ -52,7 +60,7 @@ export default function HomePage() {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState("");
 
-  // Fetch tasks
+  // Fetch current user and tasks
   const fetchTasks = async () => {
     try {
       setLoading(true);
@@ -70,6 +78,18 @@ export default function HomePage() {
 
   useEffect(() => {
     fetchTasks();
+    async function checkAuth() {
+      try {
+        const res = await fetch("/api/auth/me");
+        if (res.ok) {
+          const data = await res.json();
+          setCurrentUser(data.user);
+        }
+      } catch {
+        setCurrentUser(null);
+      }
+    }
+    checkAuth();
   }, []);
 
   // Filter tasks
@@ -87,6 +107,7 @@ export default function HomePage() {
     }
 
     setFormError("");
+    setFormSuccess("");
     setSubmitting(true);
 
     try {
@@ -102,17 +123,21 @@ export default function HomePage() {
         }),
       });
 
-      if (res.ok) {
-        setTitle("");
-        setDescription("");
-        setStatus("TODO");
-        setPriority("MEDIUM");
-        setDueDate("");
-        await fetchTasks();
-      } else {
-        const data = await res.json();
-        setFormError(data.error || "Failed to create task");
+      const data = await res.json();
+      if (!res.ok) {
+        setFormError(data.error || "Failed to create task.");
+        return;
       }
+
+      setFormSuccess("Task created successfully!");
+      setTitle("");
+      setDescription("");
+      setStatus("TODO");
+      setPriority("MEDIUM");
+      setDueDate("");
+      fetchTasks();
+
+      setTimeout(() => setFormSuccess(""), 3000);
     } catch {
       setFormError("An unexpected network error occurred.");
     } finally {
@@ -127,7 +152,9 @@ export default function HomePage() {
     setEditDescription(task.description || "");
     setEditStatus(task.status);
     setEditPriority(task.priority);
-    setEditDueDate(task.dueDate ? task.dueDate.split("T")[0] : "");
+    setEditDueDate(
+      task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : ""
+    );
     setEditError("");
   };
 
@@ -156,80 +183,85 @@ export default function HomePage() {
         }),
       });
 
-      if (res.ok) {
-        setEditingTask(null);
-        await fetchTasks();
-      } else {
-        const data = await res.json();
-        setEditError(data.error || "Failed to update task");
+      const data = await res.json();
+      if (!res.ok) {
+        setEditError(data.error || "Failed to update task.");
+        return;
       }
+
+      setEditingTask(null);
+      fetchTasks();
     } catch {
-      setEditError("Failed to update task.");
+      setEditError("An unexpected network error occurred.");
     } finally {
       setEditSubmitting(false);
     }
   };
 
   // Handle Delete Task
-  const handleDeleteTask = async (id: string, taskTitle: string) => {
+  const handleDeleteTask = async (taskId: string, taskTitle: string) => {
     if (!confirm(`Are you sure you want to delete "${taskTitle}"?`)) return;
 
     try {
-      const res = await fetch(`/api/tasks/${id}`, { method: "DELETE" });
-      if (res.ok) {
-        await fetchTasks();
-      } else {
-        alert("Failed to delete task.");
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: "DELETE",
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Failed to delete task.");
+        return;
       }
+
+      fetchTasks();
     } catch {
-      alert("Error deleting task.");
+      alert("An error occurred while deleting task.");
     }
   };
 
-  // Badge helpers - Pastel dark with high contrast text
-  const getStatusBadge = (s: "TODO" | "IN_PROGRESS" | "DONE") => {
-    switch (s) {
+  const getStatusBadge = (taskStatus: "TODO" | "IN_PROGRESS" | "DONE") => {
+    switch (taskStatus) {
       case "TODO":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60 shadow-2xs">
-            <Circle className="w-2.5 h-2.5 text-slate-400" />
-            <span>To Do</span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60">
+            <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+            To Do
           </span>
         );
       case "IN_PROGRESS":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-sky-500/10 text-sky-400 border border-sky-500/25 shadow-2xs">
-            <Clock className="w-2.5 h-2.5 text-sky-400" />
-            <span>In Progress</span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-sky-500/10 text-sky-400 border border-sky-500/25">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse"></span>
+            In Progress
           </span>
         );
       case "DONE":
         return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 shadow-2xs">
-            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
-            <span>Done</span>
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            Done
           </span>
         );
     }
   };
 
-  const getPriorityBadge = (p: "LOW" | "MEDIUM" | "HIGH") => {
-    switch (p) {
+  const getPriorityBadge = (taskPriority: "LOW" | "MEDIUM" | "HIGH") => {
+    switch (taskPriority) {
       case "HIGH":
         return (
-          <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-rose-500/10 text-rose-400 border border-rose-500/25">
+          <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/25">
             High
           </span>
         );
       case "MEDIUM":
         return (
-          <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-amber-500/10 text-amber-400 border border-amber-500/25">
+          <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25">
             Medium
           </span>
         );
       case "LOW":
         return (
-          <span className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
+          <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25">
             Low
           </span>
         );
@@ -237,249 +269,335 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full flex-1">
-      {/* Intro Hero Header */}
-      <div className="text-center pb-10 border-b border-slate-800/80">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4 shadow-xs">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Assignment 1</span>
-          <span>•</span>
-          <span>Task & Team Management Foundation</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-          Welcome to <span className="text-indigo-400">TaskFlow</span>
-        </h1>
-        <p className="mt-3 text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-          A modern, minimalist task management application built with Next.js, Prisma, and PostgreSQL. Test the live CRUD operations below without requiring login.
-        </p>
-      </div>
-
-      <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT COLUMN: Create Task Form */}
-        <div className="lg:col-span-5 bg-[#111827]/90 p-6 rounded-xl border border-slate-800 shadow-xl shadow-black/20 backdrop-blur-xs">
-          <div className="flex items-center gap-2 mb-5 pb-3 border-b border-slate-800/80">
-            <div className="p-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-indigo-400">
-              <Plus className="w-4 h-4" />
-            </div>
-            <h2 className="text-base font-semibold text-white tracking-tight">
-              Create New Task
-            </h2>
-          </div>
-
-          {formError && (
-            <div className="mb-4 flex items-center gap-2 rounded-lg bg-rose-500/10 p-3 text-xs text-rose-300 border border-rose-500/20">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{formError}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleCreateTask} className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">
-                Title <span className="text-rose-400">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Design Prisma Schema"
-                className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">
-                Description <span className="text-slate-400 font-normal">(Optional)</span>
-              </label>
-              <textarea
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Add extra context or details..."
-                className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition resize-y"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">
-                  Status
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as any)}
-                  className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-2.5 py-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition"
-                >
-                  <option value="TODO" className="bg-[#111827] text-slate-100">To Do</option>
-                  <option value="IN_PROGRESS" className="bg-[#111827] text-slate-100">In Progress</option>
-                  <option value="DONE" className="bg-[#111827] text-slate-100">Done</option>
-                </select>
+    <div className="flex-1 flex flex-col justify-between">
+      {/* Hero & Assignment Overview Header */}
+      <section className="relative overflow-hidden pt-8 pb-10 sm:pt-12 sm:pb-12 border-b border-slate-800/80 bg-gradient-to-b from-[#0F172A]/50 to-transparent">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div className="max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-3">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Assignment 2: Task & Team Management Application</span>
               </div>
-
-              <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">
-                  Priority
-                </label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as any)}
-                  className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-2.5 py-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition"
-                >
-                  <option value="LOW" className="bg-[#111827] text-slate-100">Low</option>
-                  <option value="MEDIUM" className="bg-[#111827] text-slate-100">Medium</option>
-                  <option value="HIGH" className="bg-[#111827] text-slate-100">High</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">
-                Due Date <span className="text-slate-400 font-normal">(Optional)</span>
-              </label>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={submitting}
-              className="w-full mt-3 inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/25 active:scale-[0.98] disabled:opacity-50 transition"
-            >
-              {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Create Task</span>
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* RIGHT COLUMN: Task List with Status Filter */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-[#111827]/90 p-4 rounded-xl border border-slate-800 shadow-sm">
-            <div className="flex items-center gap-2">
-              <CheckSquare className="w-4 h-4 text-indigo-400" />
-              <h2 className="text-sm font-semibold text-white tracking-tight">
-                Tasks List ({filteredTasks.length})
-              </h2>
-            </div>
-
-            {/* Filter buttons - Capsule design */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs font-medium text-slate-400 mr-1 flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5 text-slate-500" />
-                <span>Filter:</span>
-              </span>
-              {(["ALL", "TODO", "IN_PROGRESS", "DONE"] as const).map((filter) => (
-                <button
-                  key={filter}
-                  onClick={() => setStatusFilter(filter)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium transition ${
-                    statusFilter === filter
-                      ? "bg-indigo-600 text-white shadow-xs shadow-indigo-600/30"
-                      : "bg-slate-800/60 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-700/50"
-                  }`}
-                >
-                  {filter === "ALL" ? "All" : filter === "TODO" ? "To Do" : filter === "IN_PROGRESS" ? "In Progress" : "Done"}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="bg-[#111827]/60 rounded-xl border border-slate-800/80 p-12 text-center text-slate-400">
-              <Loader2 className="w-7 h-7 animate-spin text-indigo-400 mx-auto mb-2" />
-              <p className="text-xs text-slate-400">Fetching tasks from Supabase...</p>
-            </div>
-          ) : filteredTasks.length === 0 ? (
-            <div className="bg-[#111827]/60 rounded-xl border border-dashed border-slate-800 p-12 text-center">
-              <CheckCircle2 className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-              <h3 className="text-sm font-semibold text-slate-200">No tasks found</h3>
-              <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
-                {statusFilter !== "ALL"
-                  ? "There are no tasks matching the selected filter. Try selecting 'All'."
-                  : "No tasks created yet. Use the form on the left to add your first task!"}
+              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+                Modern Collaborative Workflows with{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">
+                  TaskFlow
+                </span>
+              </h1>
+              <p className="mt-2 text-sm text-slate-400 leading-relaxed">
+                Connect teams, assign deliverables, and enforce role-based access control. Unauthenticated visitors can preview public tasks below, while authenticated members unlock team spaces, Kanban boards, and member management.
               </p>
             </div>
-          ) : (
-            <div className="space-y-3">
-              {filteredTasks.map((task) => (
-                <div
-                  key={task.id}
-                  className="bg-[#111827]/90 p-4 rounded-xl border border-slate-800 hover:border-slate-700/80 hover:shadow-lg hover:shadow-black/20 transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+
+            {/* Quick Action Navigation */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {currentUser ? (
+                <Link
+                  href="/dashboard"
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/25 transition active:scale-[0.98]"
                 >
-                  <div className="space-y-1.5 flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold text-slate-100 text-sm tracking-tight">{task.title}</h3>
-                      {getStatusBadge(task.status)}
-                      {getPriorityBadge(task.priority)}
-                    </div>
-                    {task.description && (
-                      <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">{task.description}</p>
-                    )}
-                    {task.dueDate && (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400 pt-0.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                        <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800/80">
-                    <button
-                      onClick={() => openEditModal(task)}
-                      className="p-1.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition"
-                      title="Edit Task"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteTask(task.id, task.title)}
-                      className="p-1.5 rounded-lg border border-slate-800 bg-slate-900/60 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30 transition"
-                      title="Delete Task"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  <Users className="w-4 h-4" />
+                  <span>Open Teams Dashboard</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/25 transition active:scale-[0.98]"
+                  >
+                    <span>Sign In</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-[#111827] border border-slate-800 text-slate-200 hover:text-white hover:bg-slate-800/80 font-semibold text-xs transition"
+                  >
+                    Create Account
+                  </Link>
+                </>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
 
-      {/* Edit Modal in Dark Theme */}
+          {/* Grader Helper Box */}
+          <div className="mt-6 bg-[#111827]/80 border border-amber-500/20 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 shrink-0">
+                <KeyRound className="w-4 h-4" />
+              </div>
+              <div className="text-xs">
+                <span className="font-bold text-amber-300">Automated Grading Test Account: </span>
+                <span className="text-slate-300">
+                  Email: <code className="bg-[#0B0F19] px-1.5 py-0.5 rounded border border-slate-800 text-indigo-300">grader@test.com</code> | Password: <code className="bg-[#0B0F19] px-1.5 py-0.5 rounded border border-slate-800 text-indigo-300">Grader123@</code>
+                </span>
+                <span className="text-slate-400 block sm:inline sm:ml-2">(Self-registration also works without email confirmation)</span>
+              </div>
+            </div>
+            <Link
+              href="/login"
+              className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-amber-400 hover:text-amber-300 shrink-0 underline"
+            >
+              <span>Quick Login</span>
+              <ArrowRight className="w-3 h-3" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Main 2-Column Task Management Section (Dark Mode #0B0F19) */}
+      <section className="py-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Left Column (5 cols): Create New Task Form */}
+          <div className="lg:col-span-5 bg-[#111827]/90 rounded-2xl border border-slate-800 p-6 sm:p-7 shadow-sm">
+            <div className="flex items-center gap-2.5 pb-4 border-b border-slate-800/80 mb-5">
+              <div className="p-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-indigo-400">
+                <Plus className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-white tracking-tight">Create New Task</h2>
+                <p className="text-xs text-slate-400">Add tasks to the public database directly</p>
+              </div>
+            </div>
+
+            {formError && (
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-rose-500/10 p-3 text-xs text-rose-300 border border-rose-500/20">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{formError}</span>
+              </div>
+            )}
+
+            {formSuccess && (
+              <div className="mb-4 flex items-center gap-2 rounded-xl bg-emerald-500/10 p-3 text-xs text-emerald-300 border border-emerald-500/20">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{formSuccess}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateTask} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-semibold text-[#E2E8F0] mb-1.5">
+                  Title <span className="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Design Prisma Schema"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3.5 py-2.5 text-xs text-slate-100 placeholder:text-[#64748B] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
+                />
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#E2E8F0] mb-1.5">
+                  Description <span className="text-slate-500 font-normal">(Optional)</span>
+                </label>
+                <textarea
+                  rows={3}
+                  placeholder="Add extra context or details..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3.5 py-2.5 text-xs text-slate-100 placeholder:text-[#64748B] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block font-semibold text-[#E2E8F0] mb-1.5">Status</label>
+                  <select
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value as any)}
+                    className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3 py-2.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
+                  >
+                    <option value="TODO">To Do</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="DONE">Done</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block font-semibold text-[#E2E8F0] mb-1.5">Priority</label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value as any)}
+                    className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3 py-2.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
+                  >
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-semibold text-[#E2E8F0] mb-1.5">Due Date</label>
+                <input
+                  type="date"
+                  value={dueDate}
+                  onChange={(e) => setDueDate(e.target.value)}
+                  className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3.5 py-2.5 text-xs text-slate-100 placeholder:text-[#64748B] focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full mt-2 inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-3 text-xs font-semibold text-white shadow-lg shadow-indigo-600/25 disabled:opacity-50 transition active:scale-[0.99]"
+              >
+                {submitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Create Task</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          {/* Right Column (7 cols): Tasks List & Filters */}
+          <div className="lg:col-span-7 space-y-4">
+            
+            {/* Header & Filter Capsules */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-800/80">
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-white tracking-tight">Tasks List</h2>
+                <span className="px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700/60 text-slate-300 text-xs font-semibold">
+                  {filteredTasks.length}
+                </span>
+              </div>
+
+              {/* Filter Pills */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+                {(["ALL", "TODO", "IN_PROGRESS", "DONE"] as const).map((key) => {
+                  const label =
+                    key === "ALL"
+                      ? "All"
+                      : key === "TODO"
+                      ? "To Do"
+                      : key === "IN_PROGRESS"
+                      ? "In Progress"
+                      : "Done";
+                  const isActive = statusFilter === key;
+
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setStatusFilter(key)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition whitespace-nowrap ${
+                        isActive
+                          ? "bg-indigo-600 text-white shadow-xs font-semibold"
+                          : "bg-[#111827] text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-slate-800"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Task Cards */}
+            {loading ? (
+              <div className="bg-[#111827]/60 rounded-2xl border border-slate-800 p-12 text-center">
+                <Loader2 className="w-7 h-7 animate-spin text-indigo-400 mx-auto mb-2" />
+                <p className="text-xs text-slate-400">Loading tasks from database...</p>
+              </div>
+            ) : filteredTasks.length === 0 ? (
+              <div className="bg-[#111827]/60 rounded-2xl border border-dashed border-slate-800 p-12 text-center">
+                <CheckCircle2 className="w-10 h-10 text-slate-600 mx-auto mb-3" />
+                <h3 className="text-sm font-bold text-slate-200">No tasks found</h3>
+                <p className="text-xs text-slate-400 mt-1 max-w-sm mx-auto">
+                  {statusFilter !== "ALL"
+                    ? "There are no tasks matching the selected filter. Try selecting 'All'."
+                    : "No tasks created yet. Use the form on the left to add your first task!"}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {filteredTasks.map((task) => (
+                  <div
+                    key={task.id}
+                    className="bg-[#111827]/90 p-4.5 rounded-xl border border-slate-800 hover:border-slate-700/80 hover:shadow-md transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 group"
+                  >
+                    <div className="space-y-1.5 flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-bold text-white text-sm tracking-tight">{task.title}</h3>
+                        {getStatusBadge(task.status)}
+                        {getPriorityBadge(task.priority)}
+                        {task.team && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-medium bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                            Team: {task.team.name}
+                          </span>
+                        )}
+                      </div>
+
+                      {task.description && (
+                        <p className="text-xs text-[#94A3B8] line-clamp-2 leading-relaxed">
+                          {task.description}
+                        </p>
+                      )}
+
+                      {task.dueDate && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-[#94A3B8] pt-0.5">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          <span>Due: {new Date(task.dueDate).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-800">
+                      <button
+                        onClick={() => openEditModal(task)}
+                        className="p-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 transition"
+                        title="Edit Task"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTask(task.id, task.title)}
+                        className="p-1.5 rounded-lg border border-slate-800 bg-[#0B0F19] text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30 transition"
+                        title="Delete Task"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Edit Modal (Dark Mode #0B0F19) */}
       {editingTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-xs">
           <div className="w-full max-w-md rounded-2xl bg-[#111827] p-6 shadow-2xl border border-slate-800">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800/80">
-              <h3 className="text-base font-semibold text-white">Edit Task</h3>
+            <div className="flex items-center justify-between pb-3.5 border-b border-slate-800">
+              <h3 className="text-base font-bold text-white">Edit Task</h3>
               <button
                 onClick={() => setEditingTask(null)}
                 className="rounded-lg p-1 text-slate-400 hover:bg-slate-800 hover:text-white transition"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             {editError && (
-              <div className="mt-3 flex items-center gap-2 rounded-lg bg-rose-500/10 p-3 text-xs text-rose-300 border border-rose-500/20">
+              <div className="mt-3.5 flex items-center gap-2 rounded-xl bg-rose-500/10 p-3 text-xs text-rose-300 border border-rose-500/20">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{editError}</span>
               </div>
             )}
 
-            <form onSubmit={handleUpdateTask} className="mt-4 space-y-4">
+            <form onSubmit={handleUpdateTask} className="mt-4 space-y-4 text-xs">
               <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">
+                <label className="block font-semibold text-[#E2E8F0] mb-1.5">
                   Title <span className="text-rose-400">*</span>
                 </label>
                 <input
@@ -487,70 +605,70 @@ export default function HomePage() {
                   required
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition"
+                  className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3.5 py-2.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">Description</label>
+                <label className="block font-semibold text-[#E2E8F0] mb-1.5">Description</label>
                 <textarea
                   rows={3}
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition resize-y"
+                  className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3.5 py-2.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">Status</label>
+                  <label className="block font-semibold text-[#E2E8F0] mb-1.5">Status</label>
                   <select
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value as any)}
-                    className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-2.5 py-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition"
+                    className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3 py-2.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
                   >
-                    <option value="TODO" className="bg-[#111827] text-slate-100">To Do</option>
-                    <option value="IN_PROGRESS" className="bg-[#111827] text-slate-100">In Progress</option>
-                    <option value="DONE" className="bg-[#111827] text-slate-100">Done</option>
+                    <option value="TODO">To Do</option>
+                    <option value="IN_PROGRESS">In Progress</option>
+                    <option value="DONE">Done</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">Priority</label>
+                  <label className="block font-semibold text-[#E2E8F0] mb-1.5">Priority</label>
                   <select
                     value={editPriority}
                     onChange={(e) => setEditPriority(e.target.value as any)}
-                    className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-2.5 py-2 text-sm text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition"
+                    className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3 py-2.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
                   >
-                    <option value="LOW" className="bg-[#111827] text-slate-100">Low</option>
-                    <option value="MEDIUM" className="bg-[#111827] text-slate-100">Medium</option>
-                    <option value="HIGH" className="bg-[#111827] text-slate-100">High</option>
+                    <option value="LOW">Low</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="HIGH">High</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-200 mb-1.5 tracking-wide">Due Date</label>
+                <label className="block font-semibold text-[#E2E8F0] mb-1.5">Due Date</label>
                 <input
                   type="date"
                   value={editDueDate}
                   onChange={(e) => setEditDueDate(e.target.value)}
-                  className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500/40 transition"
+                  className="w-full rounded-xl bg-[#0B0F19] border border-slate-800 px-3.5 py-2.5 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition"
                 />
               </div>
 
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-800/80">
+              <div className="flex justify-end gap-2.5 pt-3 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setEditingTask(null)}
-                  className="rounded-lg border border-slate-800 bg-slate-900 px-4 py-2 text-xs font-medium text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                  className="rounded-xl border border-slate-800 bg-[#0B0F19] px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={editSubmitting}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 px-4 py-2 text-xs font-semibold text-white shadow-md shadow-indigo-600/20 disabled:opacity-50 transition"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-semibold text-white shadow-xs hover:bg-indigo-500 disabled:opacity-50 transition"
                 >
                   {editSubmitting ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -566,6 +684,11 @@ export default function HomePage() {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 bg-[#0B0F19]">
+        <p>Assignment 2: Task & Team Management Application • Next.js, Prisma & PostgreSQL</p>
+      </footer>
     </div>
   );
 }

@@ -7,7 +7,11 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get(COOKIE_NAME)?.value;
   const { pathname } = request.nextUrl;
 
-  const isProtectedPath = pathname.startsWith("/dashboard");
+  // In Assignment 2: All team and task features require login.
+  const isProtectedPath =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/teams");
+
   const isAuthPath = pathname === "/login" || pathname === "/register";
 
   if (isProtectedPath && !token) {
@@ -26,6 +30,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/teams/:path*",
     "/login",
     "/register",
   ],
