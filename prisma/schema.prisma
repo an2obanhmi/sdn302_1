@@ -10,6 +10,7 @@ datasource db {
 
 enum Role {
   OWNER
+  ADMIN
   MEMBER
 }
 
@@ -25,42 +26,54 @@ enum Priority {
   HIGH
 }
 
-model User {
-  id            String        @id @default(cuid())
-  name          String
-  email         String        @unique
-  password      String
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+enum NotificationType {
+  TASK_ASSIGNED
+  TEAM_INVITED
+  ROLE_UPDATED
+  TASK_UPDATED
+}
 
-  ownedTeams    Team[]        @relation("TeamOwner")
+model User {
+  id            String         @id @default(cuid())
+  name          String
+  email         String         @unique
+  password      String
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  ownedTeams    Team[]         @relation("TeamOwner")
   memberships   TeamMember[]
-  assignedTasks Task[]        @relation("TaskAssignee")
-  createdTasks  Task[]        @relation("TaskCreator")
+  assignedTasks Task[]         @relation("TaskAssignee")
+  createdTasks  Task[]         @relation("TaskCreator")
+  sentMessages  ChatMessage[]
+  notifications Notification[]
+  activityLogs  ActivityLog[]
 }
 
 model Team {
-  id          String        @id @default(cuid())
-  name        String
-  description String?
-  ownerId     String
-  owner       User          @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id           String        @id @default(cuid())
+  name         String
+  description  String?
+  ownerId      String
+  owner        User          @relation("TeamOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
-  members     TeamMember[]
-  tasks       Task[]
+  members      TeamMember[]
+  tasks        Task[]
+  messages     ChatMessage[]
+  activityLogs ActivityLog[]
 }
 
 model TeamMember {
-  id        String   @id @default(cuid())
-  teamId    String
-  userId    String
-  role      Role     @default(MEMBER)
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  role     Role     @default(MEMBER)
+  joinedAt DateTime @default(now())
 
-  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([teamId, userId])
 }
@@ -81,4 +94,47 @@ model Task {
   creator     User?      @relation("TaskCreator", fields: [creatorId], references: [id], onDelete: SetNull)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  content   String
+  teamId    String
+  senderId  String
+  createdAt DateTime @default(now())
+
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, createdAt])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  action    String
+  details   String
+  createdAt DateTime @default(now())
+
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([teamId, createdAt])
 }

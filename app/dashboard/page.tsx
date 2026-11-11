@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Users, Plus, Shield, CheckCircle2, ArrowRight, FolderKanban, Loader2 } from "lucide-react";
+import { Users, Plus, Shield, ShieldCheck, CheckCircle2, ArrowRight, FolderKanban, Loader2 } from "lucide-react";
 import CreateTeamModal from "@/components/CreateTeamModal";
 
 interface TeamItem {
@@ -10,7 +10,7 @@ interface TeamItem {
   name: string;
   description: string | null;
   ownerId: string;
-  userRole: "OWNER" | "MEMBER";
+  userRole: "OWNER" | "ADMIN" | "MEMBER";
   createdAt: string;
   owner: {
     id: string;
@@ -47,6 +47,31 @@ export default function DashboardPage() {
     fetchTeams();
   }, []);
 
+  const getRoleBadge = (role: "OWNER" | "ADMIN" | "MEMBER") => {
+    switch (role) {
+      case "OWNER":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-500/10 text-amber-300 border border-amber-500/25">
+            <Shield className="w-3 h-3 text-amber-400" />
+            <span>Owner</span>
+          </span>
+        );
+      case "ADMIN":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/25">
+            <ShieldCheck className="w-3 h-3 text-indigo-400" />
+            <span>Admin</span>
+          </span>
+        );
+      case "MEMBER":
+        return (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-slate-800 text-slate-300 border border-slate-700/60">
+            <span>Member</span>
+          </span>
+        );
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-1">
       {/* Header */}
@@ -54,49 +79,49 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Teams Dashboard</h1>
           <p className="mt-1 text-xs sm:text-sm text-slate-400">
-            View, manage, and collaborate across all teams you belong to.
+            View, manage, and collaborate across all teams you belong to with live updates and team chat.
           </p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs sm:text-sm shadow-lg shadow-indigo-600/25 active:scale-[0.98] transition"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-lg shadow-indigo-600/25 transition active:scale-[0.98]"
         >
           <Plus className="w-4 h-4" />
           <span>Create New Team</span>
         </button>
       </div>
 
-      {/* Stats Summary */}
+      {/* Stats Quick View */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 my-8">
-        <div className="bg-[#111827]/90 p-5 rounded-xl border border-slate-800 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-lg">
-            <FolderKanban className="w-6 h-6" />
+        <div className="bg-[#111827]/80 rounded-2xl p-5 border border-slate-800 flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+            <Users className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Your Teams</p>
-            <p className="text-2xl font-bold text-white">{teams.length}</p>
+            <p className="text-xs text-slate-400">My Teams</p>
+            <p className="text-xl font-bold text-white mt-0.5">{teams.length}</p>
           </div>
         </div>
 
-        <div className="bg-[#111827]/90 p-5 rounded-xl border border-slate-800 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-violet-500/10 border border-violet-500/20 text-violet-400 rounded-lg">
-            <Shield className="w-6 h-6" />
+        <div className="bg-[#111827]/80 rounded-2xl p-5 border border-slate-800 flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <Shield className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Owned Teams</p>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-xs text-slate-400">Owned Teams</p>
+            <p className="text-xl font-bold text-white mt-0.5">
               {teams.filter((t) => t.userRole === "OWNER").length}
             </p>
           </div>
         </div>
 
-        <div className="bg-[#111827]/90 p-5 rounded-xl border border-slate-800 shadow-sm flex items-center gap-4">
-          <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg">
-            <CheckCircle2 className="w-6 h-6" />
+        <div className="bg-[#111827]/80 rounded-2xl p-5 border border-slate-800 flex items-center gap-4">
+          <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <FolderKanban className="w-5 h-5" />
           </div>
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Total Tasks</p>
-            <p className="text-2xl font-bold text-white">
+            <p className="text-xs text-slate-400">Total Team Tasks</p>
+            <p className="text-xl font-bold text-white mt-0.5">
               {teams.reduce((acc, t) => acc + (t._count?.tasks || 0), 0)}
             </p>
           </div>
@@ -138,15 +163,7 @@ export default function DashboardPage() {
                   <h3 className="text-base font-bold text-white tracking-tight line-clamp-1">
                     {team.name}
                   </h3>
-                  <span
-                    className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium shrink-0 ${
-                      team.userRole === "OWNER"
-                        ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
-                        : "bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
-                    }`}
-                  >
-                    {team.userRole === "OWNER" ? "Owner" : "Member"}
-                  </span>
+                  {getRoleBadge(team.userRole)}
                 </div>
 
                 <p className="text-xs text-slate-400 line-clamp-2 min-h-[2.5rem] leading-relaxed">
@@ -170,7 +187,7 @@ export default function DashboardPage() {
                   href={`/teams/${team.id}`}
                   className="inline-flex items-center gap-1 font-semibold text-indigo-400 hover:text-indigo-300 transition"
                 >
-                  <span>Open</span>
+                  <span>Open Team</span>
                   <ArrowRight className="w-3.5 h-3.5" />
                 </Link>
               </div>

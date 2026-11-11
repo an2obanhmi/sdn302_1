@@ -277,16 +277,16 @@ export default function HomePage() {
             <div className="max-w-2xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-3">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Assignment 2: Task & Team Management Application</span>
+                <span>Assignment 3 & 4: Real-time Collaboration & Advanced Features</span>
               </div>
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                Modern Collaborative Workflows with{" "}
+                Live Real-time Collaboration with{" "}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">
                   TaskFlow
                 </span>
               </h1>
               <p className="mt-2 text-sm text-slate-400 leading-relaxed">
-                Connect teams, assign deliverables, and enforce role-based access control. Unauthenticated visitors can preview public tasks below, while authenticated members unlock team spaces, Kanban boards, and member management.
+                Connect teams with real-time team chat, live-updating task boards, in-app notifications, and advanced role-based permissions (Owner, Admin, Member) with audit trails.
               </p>
             </div>
 
@@ -321,26 +321,37 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Grader Helper Box */}
-          <div className="mt-6 bg-[#111827]/80 border border-amber-500/20 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+          {/* Grader Helper Box with Dual Test Accounts */}
+          <div className="mt-6 bg-[#111827]/90 border border-amber-500/20 rounded-xl p-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-start gap-3">
               <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg text-amber-400 shrink-0">
                 <KeyRound className="w-4 h-4" />
               </div>
-              <div className="text-xs">
-                <span className="font-bold text-amber-300">Automated Grading Test Account: </span>
-                <span className="text-slate-300">
-                  Email: <code className="bg-[#0B0F19] px-1.5 py-0.5 rounded border border-slate-800 text-indigo-300">grader@test.com</code> | Password: <code className="bg-[#0B0F19] px-1.5 py-0.5 rounded border border-slate-800 text-indigo-300">Grader123@</code>
-                </span>
-                <span className="text-slate-400 block sm:inline sm:ml-2">(Self-registration also works without email confirmation)</span>
+              <div className="text-xs space-y-1">
+                <div className="font-bold text-amber-300">
+                  Pre-configured Accounts for Testing Real-time Collaboration (Same Team):
+                </div>
+                <div className="text-slate-300 flex flex-wrap gap-x-4 gap-y-1">
+                  <span>
+                    <strong className="text-amber-400">Account 1 (Owner):</strong>{" "}
+                    <code className="bg-[#0B0F19] px-1.5 py-0.5 rounded border border-slate-800 text-indigo-300">grader@test.com</code> / <code className="bg-[#0B0F19] px-1.5 py-0.5 rounded border border-slate-800 text-indigo-300">Grader123@</code>
+                  </span>
+                  <span>
+                    <strong className="text-indigo-400">Account 2 (Admin):</strong>{" "}
+                    <code className="bg-[#0B0F19] px-1.5 py-0.5 rounded border border-slate-800 text-indigo-300">alice@test.com</code> / <code className="bg-[#0B0F19] px-1.5 py-0.5 rounded border border-slate-800 text-indigo-300">Alice123@</code>
+                  </span>
+                </div>
+                <div className="text-slate-400 text-[11px]">
+                  Open both accounts in two separate windows or browser tabs to test live chat and live task board sync!
+                </div>
               </div>
             </div>
             <Link
               href="/login"
-              className="inline-flex items-center justify-center gap-1 text-xs font-semibold text-amber-400 hover:text-amber-300 shrink-0 underline"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 shrink-0 transition"
             >
-              <span>Quick Login</span>
-              <ArrowRight className="w-3 h-3" />
+              <span>1-Click Login</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
@@ -687,7 +698,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500 bg-[#0B0F19]">
-        <p>Assignment 2: Task & Team Management Application • Next.js, Prisma & PostgreSQL</p>
+        <p>Assignment 3 & 4: Task & Team Management Application: Real-time Collaboration & Advanced Features • Next.js, Prisma & PostgreSQL</p>
       </footer>
     </div>
   );

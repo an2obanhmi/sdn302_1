@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckSquare, LogIn, KeyRound, Mail, AlertCircle, Sparkles } from "lucide-react";
+import { CheckSquare, LogIn, KeyRound, Mail, AlertCircle, Sparkles, Shield, ShieldCheck, User } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -39,9 +39,9 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickFill = () => {
-    setEmail("grader@test.com");
-    setPassword("Grader123@");
+  const handleFill = (userEmail: string, userPass: string) => {
+    setEmail(userEmail);
+    setPassword(userPass);
   };
 
   return (
@@ -67,19 +67,30 @@ export default function LoginPage() {
           </div>
         )}
 
-        {/* Quick Fill Test Account for Grader */}
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 text-xs text-amber-300">
-          <div className="flex items-center justify-between">
-            <span className="font-medium flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              Demo / Grader Account
-            </span>
+        {/* Quick Fill Test Accounts for Multi-User Real-time Testing */}
+        <div className="bg-[#0B0F19] border border-amber-500/20 rounded-xl p-3.5 text-xs">
+          <div className="flex items-center gap-1.5 text-amber-300 font-semibold mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>1-Click Test Accounts for Real-time Testing:</span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={handleQuickFill}
-              className="px-2.5 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-medium rounded text-[11px] transition"
+              onClick={() => handleFill("grader@test.com", "Grader123@")}
+              className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[11px] font-medium transition"
             >
-              Fill Credentials
+              <Shield className="w-3 h-3" />
+              <span>Owner (Grader)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleFill("alice@test.com", "Alice123@")}
+              className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[11px] font-medium transition"
+            >
+              <ShieldCheck className="w-3 h-3" />
+              <span>Admin (Alice)</span>
             </button>
           </div>
         </div>

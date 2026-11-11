@@ -1,13 +1,16 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
-import { TaskStatus, Priority, Prisma } from "@prisma/client";
+import { createNotification } from "@/lib/notifications";
+import { logActivity } from "@/lib/activity";
+import { broadcastTeamEvent } from "@/lib/realtime";
+import { TaskStatus, Priority, Prisma, NotificationType } from "@prisma/client";
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// GET /api/teams/:id/tasks - List tasks for a team (supports filter & search)
+// GET /api/teams/:id/tasks - List tasks for a team
 export async function GET(request: Request, { params }: RouteParams) {
   try {
     const { id: teamId } = await params;
@@ -95,6 +98,7 @@ export async function POST(request: Request, { params }: RouteParams) {
           userId: auth.userId,
         },
       },
+      include: { team: { select: { name: true } } },
     });
 
     if (!membership) {
@@ -112,6 +116,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     }
 
     // Validate assignee if provided
+    let assigneeUser = null;
     if (assigneeId) {
       const isAssigneeMember = await prisma.teamMember.findUnique({
         where: {
@@ -120,6 +125,7 @@ export async function POST(request: Request, { params }: RouteParams) {
             userId: assigneeId,
           },
         },
+        include: { user: { select: { id: true, name: true, email: true } } },
       });
 
       if (!isAssigneeMember) {
@@ -128,6 +134,7 @@ export async function POST(request: Request, { params }: RouteParams) {
           { status: 400 }
         );
       }
+      assigneeUser = isAssigneeMember.user;
     }
 
     const task = await prisma.task.create({
@@ -146,6 +153,30 @@ export async function POST(request: Request, { params }: RouteParams) {
         creator: { select: { id: true, name: true, email: true } },
       },
     });
+
+    // 1. Notify Assignee if assigned to someone else
+    if (assigneeId && assigneeId !== auth.userId) {
+      await createNotification({
+        userId: assigneeId,
+        type: NotificationType.TASK_ASSIGNED,
+        title: "New Task Assigned",
+        message: `${auth.name} assigned you to "${task.title}" in team "${membership.team.name}".`,
+        link: `/teams/${teamId}`,
+      });
+    }
+
+    // 2. Log activity
+    await logActivity({
+      teamId,
+      userId: auth.userId,
+      action: "CREATED_TASK",
+      details: `${auth.name} created task "${task.title}"${
+        assigneeUser ? ` (assigned to ${assigneeUser.name})` : ""
+      }`,
+    });
+
+    // 3. Broadcast real-time live update to all team members
+    await broadcastTeamEvent(teamId, "task:created", task);
 
     return NextResponse.json({ task }, { status: 201 });
   } catch (error) {

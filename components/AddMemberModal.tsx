@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, UserPlus, AlertCircle, Mail } from "lucide-react";
+import { X, UserPlus, AlertCircle, Mail, ShieldCheck } from "lucide-react";
 
 interface AddMemberModalProps {
   isOpen: boolean;
@@ -17,6 +17,7 @@ export default function AddMemberModal({
   onMemberAdded,
 }: AddMemberModalProps) {
   const [email, setEmail] = useState("");
+  const [role, setRole] = useState<"MEMBER" | "ADMIN">("MEMBER");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,7 +37,7 @@ export default function AddMemberModal({
       const res = await fetch(`/api/teams/${teamId}/members`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: email.trim(), role }),
       });
 
       const data = await res.json();
@@ -46,6 +47,7 @@ export default function AddMemberModal({
       }
 
       setEmail("");
+      setRole("MEMBER");
       onMemberAdded();
       onClose();
     } catch {
@@ -96,6 +98,20 @@ export default function AddMemberModal({
             <p className="mt-1.5 text-[11px] text-slate-400">
               Note: The user must already have a registered account in TaskFlow.
             </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-200 mb-1.5">
+              Initial Role
+            </label>
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value as "MEMBER" | "ADMIN")}
+              className="w-full rounded-lg bg-[#0B0F19]/90 border border-slate-800 px-3 py-2 text-xs text-slate-100 focus:border-indigo-500 focus:outline-none"
+            >
+              <option value="MEMBER">Member (create and manage own tasks)</option>
+              <option value="ADMIN">Admin (manage members and all tasks)</option>
+            </select>
           </div>
 
           <div className="flex justify-end gap-3 pt-3 border-t border-slate-800/80">

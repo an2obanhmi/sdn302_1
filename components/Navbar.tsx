@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { CheckSquare, Users, Home, LogIn, LayoutDashboard, LogOut } from "lucide-react";
+import { CheckSquare, Home, LogIn, LayoutDashboard, LogOut } from "lucide-react";
+import NotificationBell from "@/components/NotificationBell";
 
 interface UserProfile {
   id: string;
@@ -92,10 +93,13 @@ export default function Navbar() {
             </nav>
           </div>
 
-          {/* Right Action: Login / Profile & Logout */}
+          {/* Right Action: Notifications & Profile/Logout */}
           <div className="flex items-center space-x-3">
             {user ? (
               <div className="flex items-center space-x-3">
+                {/* Live In-App Notification Bell */}
+                <NotificationBell />
+
                 <div className="flex items-center space-x-2">
                   <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center font-bold text-xs ring-1 ring-slate-700">
                     {user.name.charAt(0).toUpperCase()}
